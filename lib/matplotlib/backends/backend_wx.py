@@ -845,6 +845,16 @@ class _FigureCanvasWxBase(FigureCanvasBase, wx.Panel):
             self.gui_repaint(drawDC=drawDC)
         drawDC.Destroy()
 
+    def _make_growable(self):
+        # for a standalone window, the canvas is created non-growable in the
+        # beginning to preserve the figure size
+        # now modify the sizer item properties to allow growth
+        sz = self.GetParent().GetSizer()
+        si = sz.GetItem(self)
+        si.SetProportion(1)
+        si.SetFlag(si.GetFlag() | wx.EXPAND)
+        #si.SetMinSize((2, 2))
+
     def _onSize(self, evt):
         """
         Called when wxEventSize is generated.
@@ -1183,7 +1193,8 @@ class FigureFrameWx(wx.Frame):
         self.canvas.SetInitialSize(wx.Size(fig.bbox.width, fig.bbox.height))
         self.canvas.SetFocus()
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.canvas, 1, wx.TOP | wx.LEFT | wx.EXPAND)
+        # initially, add non-growable; later call _make_growable
+        self.sizer.Add(self.canvas, 0, wx.TOP | wx.LEFT )
         # By adding toolbar in sizer, we are able to put it at the bottom
         # of the frame - so appearance is closer to GTK version
 
@@ -1205,8 +1216,7 @@ class FigureFrameWx(wx.Frame):
             self.sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
         self.SetSizer(self.sizer)
         self.Fit()
-
-        self.canvas.SetMinSize((2, 2))
+        wx.CallLater(0, self.canvas._make_growable)
 
         # give the window a matplotlib icon rather than the stock one.
         # This is not currently working on Linux and is untested elsewhere.
