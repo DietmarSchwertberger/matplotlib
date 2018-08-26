@@ -22,7 +22,7 @@ class FigureCanvasWxAgg(FigureCanvasAgg, _FigureCanvasWxBase):
     size.
     """
 
-    def draw(self, drawDC=None):
+    def draw(self):
         """
         Render the figure using agg.
         """
@@ -30,16 +30,16 @@ class FigureCanvasWxAgg(FigureCanvasAgg, _FigureCanvasWxBase):
 
         self.bitmap = _convert_agg_to_wx_bitmap(self.get_renderer(), None)
         self._isDrawn = True
-        self.gui_repaint(drawDC=drawDC, origin='WXAgg')
 
     def blit(self, bbox=None):
         """
-        Transfer the region of the agg buffer defined by bbox to the display.
+        Transfer the region of the agg buffer defined by bbox to the display
+        buffer bitmap and trigger a screen display refresh.
         If bbox is None, the entire buffer is transferred.
         """
         if bbox is None:
             self.bitmap = _convert_agg_to_wx_bitmap(self.get_renderer(), None)
-            self.gui_repaint()
+            self.Refresh()
             return
 
         l, b, w, h = bbox.bounds
@@ -59,7 +59,8 @@ class FigureCanvasWxAgg(FigureCanvasAgg, _FigureCanvasWxBase):
 
         destDC.SelectObject(wx.NullBitmap)
         srcDC.SelectObject(wx.NullBitmap)
-        self.gui_repaint()
+
+        self.Refresh(rect=wx.Rect(x,y, int(w), int(h)))
 
     filetypes = FigureCanvasAgg.filetypes
 
